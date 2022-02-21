@@ -40,23 +40,22 @@ $(QUARTUS_SOF_FILE): $(QUARTUS_FIT_FILE)
 	mv $(QUARTUS_DIR)/output_files/$(QUARTUS_SOF_FILE) .
 
 fit: $(QUARTUS_FIT_FILE)
-$(QUARTUS_FIT_FILE): $(QUARTUS_MAP_FILE)
+$(QUARTUS_FIT_FILE): $(QUARTUS_MAP_FILE) $(QUARTUS_MIF) $(QUARTUS_SDC) 
 	$(QUARTUS_FIT) \
 		$(QUARTUS_DIR)/$(QUARTUS_TOP) \
 		--effort=$(QUARTUS_FIT_EFFORT) \
 		--rev=$(QUARTUS_TOP)
 
 map: $(QUARTUS_MAP_FILE)
-$(QUARTUS_MAP_FILE): $(QUARTUS_SRC) $(QUARTUS_QPF_FILE)
+$(QUARTUS_MAP_FILE): $(QUARTUS_QIP) $(QUARTUS_SIP) $(QUARTUS_VHDL) $(QUARTUS_VLOG) | $(QUARTUS_QPF_FILE)
 	$(QUARTUS_MAP) \
 		$(QUARTUS_DIR)/$(QUARTUS_TOP) \
 		--part=$(QUARTUS_PART) \
 		$(addprefix --optimize=,$(QUARTUS_MAP_OPTIMIZE)) \
-		--rev=$(QUARTUS_TOP) \
-		$(foreach X,$(QUARTUS_SRC),--source=$X)
+		--rev=$(QUARTUS_TOP)
 
 qpf: $(QUARTUS_QPF_FILE)
-$(QUARTUS_QPF_FILE): makefile $(QUARTUS_TCL)
+$(QUARTUS_QPF_FILE): makefile $(QUARTUS_TCL) | $(QUARTUS_QIP) $(QUARTUS_MIF) $(QUARTUS_SIP) $(QUARTUS_VHDL) $(QUARTUS_VLOG) $(QUARTUS_SDC)
 	rm -rf $(QUARTUS_DIR)
 	mkdir $(QUARTUS_DIR)
 	$(QUARTUS_SH) --tcl_eval \
@@ -64,6 +63,13 @@ $(QUARTUS_QPF_FILE): makefile $(QUARTUS_TCL)
 		set_global_assignment -name DEVICE $(QUARTUS_PART) \;\
 		set_global_assignment -name TOP_LEVEL_ENTITY $(QUARTUS_TOP) \;\
 		set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files \;\
+		$(addprefix set_global_assignment -name QIP_FILE ,$(QUARTUS_QIP:=\;)) \
+		$(addprefix set_global_assignment -name SIP_FILE ,$(QUARTUS_SIP:=\;)) \
+		$(addprefix set_global_assignment -name MIF_FILE ,$(QUARTUS_MIF:=\;)) \
+		$(addprefix set_global_assignment -name VHDL_FILE ,$(QUARTUS_VHDL:=\;)) \
+		$(addprefix set_global_assignment -name VERILOG_FILE ,$(QUARTUS_VLOG:=\;)) \
+		$(addprefix set_global_assignment -name SDC_FILE ,$(QUARTUS_SDC:=\;)) \
+		$(subst =, ,$(addprefix set_parameter -name ,$(QUARTUS_GEN:=\;))) \
 		$(addprefix source ,$(QUARTUS_TCL:=;))
 
 clean::
