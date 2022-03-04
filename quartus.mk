@@ -8,7 +8,8 @@
 #	QUARTUS_FIT_EFFORT		fitter effort (standard|fast|auto)
 #	QUARTUS_SRC				design source(s) (HDL, SDC)
 #	QUARTUS_TCL				TCL scripts (e.g. pin assignments)
-#
+# ...and optionally...
+#   QUARTUS_PGM_OPT         command line options for quartus_pgm
 # Define QUARTUS_PATH if the Quartus executables are not in your path.
 #
 ################################################################################
@@ -17,6 +18,7 @@ QUARTUS_SH=$(QUARTUS_PATH:=/)quartus_sh
 QUARTUS_MAP=$(QUARTUS_PATH:=/)quartus_map
 QUARTUS_FIT=$(QUARTUS_PATH:=/)quartus_fit
 QUARTUS_ASM=$(QUARTUS_PATH:=/)quartus_asm
+QUARTUS_PGM=$(QUARTUS_PATH:=/)quartus_pgm
 
 QUARTUS_DIR=quartus
 
@@ -26,11 +28,17 @@ endif
 ifndef QUARTUS_TOP
 $(error QUARTUS_TOP not defined)
 endif
+ifndef QUARTUS_PGM_OPT
+QUARTUS_PGM_OPT=-m jtag -c 1
+endif
 
 QUARTUS_SOF_FILE=$(QUARTUS_TOP).sof
-QUARTUS_FIT_FILE=$(QUARTUS_DIR)/db/$(QUARTUS_TOP).fit.qmsg
-QUARTUS_MAP_FILE=$(QUARTUS_DIR)/db/$(QUARTUS_TOP).cdb
+QUARTUS_FIT_FILE=$(QUARTUS_DIR)/db/$(QUARTUS_TOP).cmp.cdb
+QUARTUS_MAP_FILE=$(QUARTUS_DIR)/db/$(QUARTUS_TOP).map.cdb
 QUARTUS_QPF_FILE=$(QUARTUS_DIR)/$(QUARTUS_TOP).qpf
+
+prog: $(QUARTUS_SOF_FILE)
+	$(QUARTUS_PGM) $(QUARTUS_PGM_OPT) -o P\;$(QUARTUS_SOF_FILE)
 
 sof: $(QUARTUS_SOF_FILE)
 $(QUARTUS_SOF_FILE): $(QUARTUS_FIT_FILE)
@@ -70,7 +78,7 @@ $(QUARTUS_QPF_FILE): makefile $(QUARTUS_TCL) | $(QUARTUS_QIP) $(QUARTUS_MIF) $(Q
 		$(addprefix set_global_assignment -name VERILOG_FILE ,$(QUARTUS_VLOG:=\;)) \
 		$(addprefix set_global_assignment -name SDC_FILE ,$(QUARTUS_SDC:=\;)) \
 		$(subst =, ,$(addprefix set_parameter -name ,$(QUARTUS_GEN:=\;))) \
-		$(addprefix source ,$(QUARTUS_TCL:=;))
+		$(addprefix source ,$(QUARTUS_TCL:=\;))
 
 clean::
 	rm -rf $(QUARTUS_DIR)
