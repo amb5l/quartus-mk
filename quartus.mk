@@ -6,10 +6,15 @@
 #	QUARTUS_TOP				top entity name for synthesis and implementation
 #	QUARTUS_MAP_OPTIMIZE	synthesis optimization (area|speed|balanced)
 #	QUARTUS_FIT_EFFORT		fitter effort (standard|fast|auto)
-#	QUARTUS_SRC				design source(s) (HDL, SDC)
-#	QUARTUS_TCL				TCL scripts (e.g. pin assignments)
 # ...and optionally...
-#   QUARTUS_PGM_OPT         command line options for quartus_pgm
+#	QUARTUS_VHDL			design source(s) (VHDL)
+#	QUARTUS_VLOG			design source(s) (Verilog)
+#	QUARTUS_TCL				TCL scripts (e.g. pin assignments)
+#	QUARTUS_SDC				timing constraints
+#	QUARTUS_QIP				IP qip file(s)
+#	QUARTUS_SIP				IP sip file(s)
+#	QUARTUS_MIF				memory initialisation file(s)
+#	QUARTUS_PGM_OPT			command line options for quartus_pgm
 # Define QUARTUS_PATH if the Quartus executables are not in your path.
 #
 ################################################################################
@@ -54,7 +59,7 @@ $(QUARTUS_SOF_FILE): $(QUARTUS_FIT_FILE)
 	mv $(QUARTUS_DIR)/output_files/$(QUARTUS_SOF_FILE) .
 
 fit: $(QUARTUS_FIT_FILE)
-$(QUARTUS_FIT_FILE): $(QUARTUS_MAP_FILE) $(QUARTUS_MIF) $(QUARTUS_SDC) 
+$(QUARTUS_FIT_FILE): $(QUARTUS_MAP_FILE) $(QUARTUS_MIF) $(QUARTUS_SDC)
 	$(QUARTUS_FIT) \
 		$(QUARTUS_DIR)/$(QUARTUS_TOP) \
 		--effort=$(QUARTUS_FIT_EFFORT) \
